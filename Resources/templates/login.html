@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stocks Tracker</title>
+</head>
+<body>
+{{#username}}
+Hello {{.}}!
+<form action="/logout" method="post" style="display: inline-block;">
+    <button type="submit">Logout</button>
+</form>
+
+
+<br><br>
+{{/username}}
+
+{{^username}}
+<form action="/login" method="post">
+    <input type="text" name="username" placeholder="Enter your name"/>
+    <button type="submit">Login</button>
+</form>
+
+<br>
+<br>
+{{/username}}
+</body>
+</html>
