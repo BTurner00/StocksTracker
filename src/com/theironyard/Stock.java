@@ -6,15 +6,18 @@ package com.theironyard;
 public class Stock {
     String name;
     String symbol;
-    int price;
+    double price;
     double shares;
     double dividend;
+    double value;
 
-    public Stock(String name, String symbol, int price, double shares, double dividend) {
+    public Stock(String name, String symbol, double price, double shares, double dividend, double value) {
         this.name = name;
         this.symbol = symbol;
         this.price = price;
         this.shares = shares;
         this.dividend = dividend;
+        this.value= value;
+
     }
 }

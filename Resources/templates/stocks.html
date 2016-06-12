@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Stocks Tracker</title>
+</head>
+<body>
+
+<form action="/create-stock" method="post">
+    <input type="text" name="name" placeholder="Name"/>
+    <input type="text" name="symbol" placeholder="Symbol"/>
+    <input type="text" name="price" placeholder="Price"/>
+    <input type="text" name="shares" placeholder="# of Shares"/>
+    <input type="text" name="dividend" placeholder="Value of Dividend"/>
+    <button type="submit">Submit Stock</button>
+</form>
+
+
+<br>
+<ol>
+    {{#stocks}}
+    <li><b>{{name}}</b> - {{symbol}} - $ {{price}} per share - {{shares}} shares  - ${{dividend}} dividend - {{value}}</li>
+    {{/stocks}}
+</ol>
+
+</body>
+</html>
