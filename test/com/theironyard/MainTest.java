@@ -70,6 +70,19 @@ public class MainTest {
         Stock stock = Main.selectStock(conn,1);
         conn.close();
         assertTrue(stock == null);
+
+    }
+
+    @Test
+    public void testUpdate () throws SQLException {
+        Connection conn = startConnection();
+        Main.insertUser(conn, "Alice", "");
+        User alice = Main.selectUser(conn, "Alice");
+        Main.insertStock(conn, "ok", "yeah", 1.0, 1.0, alice.id );
+        Main.updateStock(conn, 1, "yeah", "ok", 2.0, 2.0, alice.id);
+        Stock stock = Main.selectStock(conn, 1);
+        conn.close();
+        assertTrue(stock.name == "yeah");
     }
 
 

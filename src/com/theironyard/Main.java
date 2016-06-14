@@ -12,9 +12,6 @@ import java.util.HashMap;
 
 public class Main {
 
-    //static HashMap<String, User> users = new HashMap<>();
-
-
     public static void createTables (Connection conn) throws SQLException {
         Statement stmt = conn.createStatement();
         stmt.execute("CREATE TABLE IF NOT EXISTS users (id IDENTITY, name VARCHAR, password VARCHAR)");
@@ -83,9 +80,20 @@ public class Main {
         return stocks;
     }
 
-    public static void deleteStock (Connection conn, int id) throws SQLException {
+    static void deleteStock (Connection conn, int id) throws SQLException {
         PreparedStatement stmt = conn.prepareStatement("DELETE FROM stocks WHERE id = ?");
         stmt.setInt(1, id);
+        stmt.execute();
+    }
+
+    static void updateStock (Connection conn, int id, String name, String symbol, double price, double shares, int userId) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("UPDATE stocks SET name = ?, symbol = ?, price = ?, shares = ?, user_id = ? WHERE id = ?");
+        stmt.setString(1, name);
+        stmt.setString(2, symbol);
+        stmt.setDouble(3, price);
+        stmt.setDouble(4, shares);
+        stmt.setInt(5, userId);
+        stmt.setInt(6, id);
         stmt.execute();
     }
 
@@ -117,7 +125,7 @@ public class Main {
                         return new ModelAndView(m, "login.html");
                     } else {
                         User user = selectUser(conn, username);
-                        m.put("stocks", selectStock(conn, user.id));
+                        m.put("stocks", selectStocks(conn, user.id));
 
                         return new ModelAndView(m, "stocks.html");
                     }
@@ -258,10 +266,8 @@ public class Main {
                     if (user == null) {
                         throw new Exception("User does not exist");
                     }
-                    Stock s  =  new Stock(name, symbol, price, shares);
+                    updateStock(conn, id, name, symbol, price, shares, user.id);
 
-
-                    user.stocks.set(id, s);
 
                     response.redirect("/");
                     return "";
