@@ -8,8 +8,10 @@ import java.util.ArrayList;
 public class User {
     String username;
     String password;
+    int id;
 
-    public User(String username, String password) {
+    public User(int id, String username, String password) {
+        this.id = id;
         this.username = username;
         this.password = password;
     }
@@ -20,5 +22,10 @@ public class User {
         this.username = username;
         this.password = password;
         this.stocks = stocks;
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 }

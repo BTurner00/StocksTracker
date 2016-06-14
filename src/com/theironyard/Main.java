@@ -1,19 +1,103 @@
 package com.theironyard;
 
+import org.h2.tools.Server;
 import spark.ModelAndView;
 import spark.Session;
 import spark.Spark;
 import spark.template.mustache.MustacheTemplateEngine;
 
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Main {
 
-    static HashMap<String, User> users = new HashMap<>();
+    //static HashMap<String, User> users = new HashMap<>();
 
-    public static void main(String[] args) {
 
+    public static void createTables (Connection conn) throws SQLException {
+        Statement stmt = conn.createStatement();
+        stmt.execute("CREATE TABLE IF NOT EXISTS users (id IDENTITY, name VARCHAR, password VARCHAR)");
+        stmt.execute("CREATE TABLE IF NOT EXISTS stocks (id IDENTITY, name VARCHAR, symbol VARCHAR, price DOUBLE, shares DOUBLE, user_id INT)");
+    }
+
+    static void insertUser (Connection conn, String name, String password) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO users VALUES (NULL, ?, ?)");
+        stmt.setString(1, name);
+        stmt.setString(2, password);
+        stmt.execute();
+    }
+
+    static User selectUser (Connection conn, String name) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM users WHERE name = ?");
+        stmt.setString(1, name);
+        ResultSet results = stmt.executeQuery();
+        if (results.next()) {
+            int id = results.getInt("id");
+            String password  = results.getString("password");
+            return new User(id, name, password);
+        }
+
+        return null;
+    }
+
+    static void insertStock (Connection conn, String name, String symbol, double price, double shares, int userId) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("INSERT INTO stocks VALUES (NULL, ?, ?, ?, ?, ?)");
+        stmt.setString(1, name);
+        stmt.setString(2, symbol);
+        stmt.setDouble(3, price);
+        stmt.setDouble(4, shares);
+        stmt.setInt(5, userId);
+
+        stmt.execute();
+    }
+
+    static Stock selectStock (Connection conn, int id ) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM stocks INNER JOIN users ON stocks.user_id = users.id WHERE users.id = ?");
+        stmt.setInt(1, id);
+        ResultSet results = stmt.executeQuery();
+        if (results.next()) {
+            String name = results.getString("stocks.name");
+            String symbol = results.getString("stocks.symbol");
+            double price = results.getDouble("stocks.price");
+            double shares = results.getDouble("stocks.shares");
+            return new Stock(id, name, symbol, price, shares);
+        }
+        return null;
+    }
+
+    static ArrayList<Stock> selectStocks(Connection conn, int userId) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM stocks INNER JOIN users ON stocks.user_id = users.id WHERE stocks.user_id = ?");
+        stmt.setInt(1, userId);
+        ResultSet results = stmt.executeQuery();
+        ArrayList<Stock> stocks = new ArrayList<>();
+        while (results.next()) {
+            int id = results.getInt("id");
+            String name = results.getString("name");
+            String symbol = results.getString("symbol");
+            double price = results.getDouble("price");
+            double shares = results.getDouble("shares");
+            Stock stock = new Stock(id, name, symbol, price, shares);
+            stocks.add(stock);
+        }
+        return stocks;
+    }
+
+    public static void deleteStock (Connection conn, int id) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("DELETE FROM stocks WHERE id = ?");
+        stmt.setInt(1, id);
+        stmt.execute();
+    }
+
+
+
+
+
+
+    public static void main(String[] args) throws SQLException {
+        Server.createWebServer().start();
+        Connection conn = DriverManager.getConnection("jdbc:h2:./main");
+        createTables(conn);
 
 
 
@@ -32,8 +116,9 @@ public class Main {
                     if (username == null) {
                         return new ModelAndView(m, "login.html");
                     } else {
-                        User user = users.get(username);
-                        m.put("stocks", user.stocks);
+                        User user = selectUser(conn, username);
+                        m.put("stocks", selectStock(conn, user.id));
+
                         return new ModelAndView(m, "stocks.html");
                     }
 
@@ -49,14 +134,13 @@ public class Main {
                     String username = session.attribute("username");
 
                     int id = Integer.valueOf(request.queryParams("id"));
-                    User user = users.get(username);
+                    User user = selectUser(conn, username);
 
                     HashMap m = new HashMap<>();
 
                     m.put("username", username );
-
                     m.put("id", id);
-                    m.put("stocks", user.stocks);
+                    m.put("stocks", selectStocks(conn, user.id));
                     return new ModelAndView(m, "edit.html");
 
                 },
@@ -66,22 +150,21 @@ public class Main {
         Spark.post(
                 "/login",
                 (request, response) -> {
-                    String name = request.queryParams("username");
+                    String username = request.queryParams("username");
                     String pass = request.queryParams("password");
-                    if (name == null || pass == null) {
+                    if (username == null || pass == null) {
                         throw new Exception("Name or pass not sent");
                     }
 
-                    User user = users.get(name);
+                    User user = selectUser(conn, username);
                     if (user == null) {
-                        user = new User(name, pass);
-                        users.put(name, user);
+                        insertUser(conn, username, pass);
                     } else if (!pass.equals(user.password)) {
                         throw new Exception("Wrong password");
                     }
 
                     Session session = request.session();
-                    session.attribute("username", name);
+                    session.attribute("username", username);
 
                     response.redirect("/");
                     return "";
@@ -116,30 +199,27 @@ public class Main {
                     String symbol = request.queryParams("symbol");
                     String priceStr = request.queryParams("price");
                     String sharesStr = request.queryParams("shares");
-                    String dividendStr = request.queryParams("dividend");
 
-                    if (name == null ||  symbol == null || priceStr == null || sharesStr == null ||  dividendStr == null) {
+
+                    if (name == null ||  symbol == null || priceStr == null || sharesStr == null ) {
                         throw new Exception("Invalid form fields");
                     }
 
                     double price = Double.valueOf(priceStr);
                     double shares = Double.valueOf(sharesStr);
-                    double dividend = Double.valueOf(dividendStr);
+
                     double value = price * shares;
 
 
-                    User user = users.get(username);
+                    User user = selectUser(conn, username);
 
                     if (user == null) {
                         throw new Exception("User does not exist");
                     }
 
-
-
-                    Stock s  =  new Stock(name, symbol, price, shares, dividend, value);
-
-
-                    user.stocks.add(s);
+                    //Stock s  =  new Stock(name, symbol, price, shares,  value);
+                    //user.stocks.add(s);
+                    insertStock(conn, name, symbol, price, shares, user.id);
 
                     response.redirect("/");
                     return "";
@@ -161,26 +241,24 @@ public class Main {
                     String symbol = request.queryParams("editsymbol");
                     String priceStr = request.queryParams("editprice");
                     String sharesStr = request.queryParams("editshares");
-                    String dividendStr = request.queryParams("editdividend");
                     String idStr = request.queryParams("editid");
 
-                    if (name == null ||  symbol == null || priceStr == null || sharesStr == null ||  dividendStr == null) {
+                    if (name == null ||  symbol == null || priceStr == null || sharesStr == null ) {
                         throw new Exception("Invalid form fields");
                     }
 
                     double price = Double.valueOf(priceStr);
                     double shares = Double.valueOf(sharesStr);
-                    double dividend = Double.valueOf(dividendStr);
                     double value = price * shares;
                     int id = Integer.valueOf(idStr);
 
 
-                    User user = users.get(username);
+                    User user = selectUser(conn, username);
 
                     if (user == null) {
                         throw new Exception("User does not exist");
                     }
-                    Stock s  =  new Stock(name, symbol, price, shares, dividend, value);
+                    Stock s  =  new Stock(name, symbol, price, shares);
 
 
                     user.stocks.set(id, s);
@@ -201,15 +279,15 @@ public class Main {
 
                     }
 
-                    User user = users.get(username);
+                    User user = selectUser(conn, username);
 
                     int id = Integer.valueOf(request.queryParams("id"));
-
-                    if (id < 0 || id >= user.stocks.size()) {
+                    if (id < 0 ) {
                         throw new Exception("Invalid ID");
                     }
+                    Integer.valueOf(id);
 
-                    user.stocks.remove(id);
+                    deleteStock(conn, id);
 
                     response.redirect("/");
                     return "";

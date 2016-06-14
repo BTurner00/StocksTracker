@@ -8,27 +8,23 @@ public class Stock {
     String symbol;
     double price;
     double shares;
-    double dividend;
-    double value;
     int id;
 
-    public Stock(String name, String symbol, double price, double shares, double dividend, double value, int id) {
+
+
+    public Stock(int id, String name, String symbol, double price, double shares) {
+        this.id = id;
         this.name = name;
         this.symbol = symbol;
         this.price = price;
         this.shares = shares;
-        this.dividend = dividend;
-        this.value = value;
-        this.id = id;
-
     }
 
-    public Stock(String name, String symbol, double price, double shares, double dividend, double value) {
+    public Stock(String name, String symbol, double price, double shares) {
         this.name = name;
         this.symbol = symbol;
         this.price = price;
         this.shares = shares;
-        this.dividend = dividend;
-        this.value = value;
+
     }
 }

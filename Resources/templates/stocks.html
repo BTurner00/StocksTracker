@@ -9,14 +9,13 @@
 
 <form action="/logout" method="post" style="display: inline-block;">
     <button type="submit">Logout</button>
-</form> <br>
+</form> <br> <br>
 
 <form action="/create-stock" method="post" style="display: inline-block;">
     <input type="text" name="name" placeholder="Name"/>
     <input type="text" name="symbol" placeholder="Symbol"/>
     <input type="text" name="price" placeholder="Price"/>
     <input type="text" name="shares" placeholder="# of Shares"/>
-    <input type="text" name="dividend" placeholder="Value of Dividend"/>
     <input type="hidden" name="id" value="{{id}}"/>
     <button type="submit">Submit Stock</button>
 </form>
@@ -25,7 +24,7 @@
 <br>
 <ol>
     {{#stocks}}
-    <li><b>{{name}}</b> - {{symbol}} - $ {{price}} per share - {{shares}} shares  - ${{dividend}} dividend - Total value: ${{value}}</li>
+    <li><b>{{name}}</b> - {{symbol}} - $ {{price}} per share - {{shares}} shares  - Total value: ${{value}}</li>
     <form action="/delete-stock" method="post" style="display: inline-block;">
         <input type="hidden" name="id" value="{{id}}"/>
         <button type="submit">Delete</button>
