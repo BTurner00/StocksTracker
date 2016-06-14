@@ -23,7 +23,7 @@
 <br>
 <ol>
     {{#stocks}}
-    <li><b>{{name}}</b> - {{symbol}} - $ {{price}} per share - {{shares}} shares  - Total value: ${{value}}</li>
+    <li><b>{{name}}</b> - {{symbol}} - $ {{price}} per share - {{shares}} shares </li>
     <form action="/delete-stock" method="post" style="display: inline-block;">
         <input type="hidden" name="id" value="{{id}}"/>
         <button type="submit">Delete</button>

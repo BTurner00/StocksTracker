@@ -73,7 +73,7 @@ public class MainTest {
 
     }
 
-    @Test
+    /*@Test
     public void testUpdate () throws SQLException {
         Connection conn = startConnection();
         Main.insertUser(conn, "Alice", "");
@@ -86,6 +86,6 @@ public class MainTest {
     }
 
 
-
+*/
 
 }

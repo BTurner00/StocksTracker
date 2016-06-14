@@ -86,14 +86,14 @@ public class Main {
         stmt.execute();
     }
 
-    static void updateStock (Connection conn, int id, String name, String symbol, double price, double shares, int userId) throws SQLException {
-        PreparedStatement stmt = conn.prepareStatement("UPDATE stocks SET name = ?, symbol = ?, price = ?, shares = ?, user_id = ? WHERE id = ?");
+    static void updateStock (Connection conn, int id, String name, String symbol, double price, double shares /*int userId*/) throws SQLException {
+        PreparedStatement stmt = conn.prepareStatement("UPDATE stocks SET name = ?, symbol = ?, price = ?, shares = ? WHERE id = ?");
         stmt.setString(1, name);
         stmt.setString(2, symbol);
         stmt.setDouble(3, price);
         stmt.setDouble(4, shares);
-        stmt.setInt(5, userId);
-        stmt.setInt(6, id);
+        //stmt.setInt(5, userId);
+        stmt.setInt(5, id);
         stmt.execute();
     }
 
@@ -266,7 +266,7 @@ public class Main {
                     if (user == null) {
                         throw new Exception("User does not exist");
                     }
-                    updateStock(conn, id, name, symbol, price, shares, user.id);
+                    updateStock(conn, id, name, symbol, price, shares);
 
 
                     response.redirect("/");
